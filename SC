@@ -1,7 +1,7 @@
 settings {
     "main": {
-        "description": "by LUNASMILEYY! | CODE: 298SV",
-        "modeName": "<FGffe114FF>ILLARI PAINTBALL ︻デ≡一一 <FGC8C8C8FF>| By LUNASMILEYY | 1.0"
+        "description": "by LUNASMILEYY! | CODE: 298SV | Charge HUD by AstroSpice",
+        "modeName": "ILLARI PAINTBALL ︻デ≡一一 | 1.1"
     },
     "lobby": {
         "allowPlayersInQueue": true,
