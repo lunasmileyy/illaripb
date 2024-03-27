@@ -1,0 +1,433 @@
+settings {
+    "main": {
+        "description": "by LUNASMILEYY! | CODE: 298SV",
+        "modeName": "<FGffe114FF>ILLARI PAINTBALL ︻デ≡一一 <FGC8C8C8FF>| By LUNASMILEYY | 1.0"
+    },
+    "lobby": {
+        "allowPlayersInQueue": true,
+        "mapRotation": "afterGame",
+        "enableMatchVoiceChat": true,
+        "spectatorSlots": 12,
+        "returnToLobby": "never",
+        "swapTeamsAfterMatch": false
+    },
+    "gamemodes": {
+        "assault": {
+            "enabled": false,
+            "tankPassiveHealthBonus": "disabled"
+        },
+        "bountyHunter": {
+            "enabled": false,
+            "tankPassiveHealthBonus": "disabled"
+        },
+        "ctf": {
+            "enabled": false,
+            "tankPassiveHealthBonus": "disabled"
+        },
+        "control": {
+            "enabled": false,
+            "tankPassiveHealthBonus": "disabled"
+        },
+        "ffa": {
+            "disabledMaps": [
+                "workshopChamber",
+                "workshopExpanse",
+                "workshopExpanseNight",
+                "workshopGreenScreen",
+                "workshopIsland",
+                "workshopIslandNight"
+            ],
+            "scoreToWin": 25,
+            "tankPassiveHealthBonus": "disabled"
+        },
+        "elimination": {
+            "enabled": false,
+            "heroPoolSize": "teamSize",
+            "enableWallhack": true,
+            "scoreToWin": 5
+        },
+        "escort": {
+            "enabled": false,
+            "tankPassiveHealthBonus": "disabled"
+        },
+        "flashpoint": {
+            "enabled": false,
+            "tankPassiveHealthBonus": "disabled"
+        },
+        "hybrid": {
+            "enabled": false,
+            "tankPassiveHealthBonus": "disabled"
+        },
+        "practiceRange": {
+            "enabled": false,
+            "tankPassiveHealthBonus": "disabled"
+        },
+        "push": {
+            "enabled": false,
+            "tankPassiveHealthBonus": "disabled"
+        },
+        "skirmish": {
+            "enabled": false,
+            "tankPassiveHealthBonus": "disabled"
+        },
+        "tdm": {
+            "enabled": false,
+            "tankPassiveHealthBonus": "disabled"
+        },
+        "general": {
+            "enableHeroSwitching": false,
+            "gamemodeStartTrigger": "immediately",
+            "healthPackRespawnTime%": 67,
+            "heroLimit": "off",
+            "enableKillCam": false,
+            "enableRandomHeroes": true,
+            "respawnTime%": 8,
+            "spawnHealthPacks": "enabled"
+        }
+    },
+    "heroes": {
+        "allTeams": {
+            "illari": {
+                "enableAbility2": false,
+                "healingReceived%": 100,
+                "ability1Cooldown%": 45,
+                "combatUltGen%": 340,
+                "passiveUltGen%": 400
+            },
+            "enabledHeroes": [
+                "illari"
+            ]
+        }
+    }
+}
+
+#Global variables
+
+globalvar moveSpeedDefault 0
+globalvar moveSpeedRespawn 1
+globalvar moveSpeedUlt 2
+globalvar jumpCDDefault 3
+globalvar motdProgressBar 4
+globalvar motdArray 5
+globalvar motdArrayList 6
+globalvar jumpChargesDefault 7
+globalvar lowGravAmountDefault 11
+globalvar lowGravChargeDefault 12
+globalvar gs 16
+
+
+#Player variables
+
+playervar jumpCharges 0
+playervar jumpCD 1
+playervar spawnInit 2
+playervar respawn 3
+playervar powerUp 5
+playervar killCount 6
+playervar killStreakCount 7
+playervar lowGrav 8
+playervar totalKillCount 9
+playervar deathCount 10
+playervar meleeKills 11
+playervar outburstKills 12
+playervar captiveSunKills 13
+
+
+rule "Server Init":
+    #skip assembly
+    startGamemode()
+    #deathmatch immediate start
+    if getCurrentGamemode() == Gamemode.FFA:
+        setMatchTime(0)
+    #setup arrays
+    motdArray = []
+    gs = []
+    #setup default values
+    moveSpeedDefault = 115
+    moveSpeedRespawn = 220
+    moveSpeedUlt = 205
+    jumpCDDefault = 7
+    motdArrayList = 0
+    jumpChargesDefault = 2
+    lowGravChargeDefault = 40
+    #motd messages
+    motdArray.append("Leap Charges are above the ult bar!")
+    motdArray.append("Press interact key to launch yourself!")
+    motdArray.append("Combo Outburst → Leap to fly further!")
+    motdArray.append("Tap Outburst to do a small jump!")
+    motdArray.append("Hold Jump before landing to bunny-hop!")
+    #setup powerup list
+    moveSpeedDefault.append("powerUpUlt")
+    moveSpeedDefault.append("powerUpLeapCharge")
+    moveSpeedDefault.append("powerUpDMG")
+    moveSpeedDefault.append("powerUpQuiet")
+
+rule "@Skip to Next Map":
+    @Condition isMatchComplete()
+    wait(3)
+    restartMatch()
+ 
+
+rule "@MOTD":
+    motdProgressBar = 100
+    progressBarHud(getAllPlayers(), motdProgressBar, "{0} | CODE: 298SV".format(motdArray[motdArrayList]), HudPosition.TOP, 0, rgb(random.uniform(0, 190), random.uniform(60, 255), random.uniform(56, 255)),Color.LIME_GREEN, ProgressHudReeval.VISIBILITY_VALUES_AND_COLOR, SpecVisibility.DEFAULT)
+    chase(motdProgressBar, 0, rate=5, ChaseReeval.DESTINATION_AND_RATE)
+    wait(20)
+    destroyAllProgressBarHuds()
+    motdArrayList += 1
+    if motdArrayList < len(motdArray):
+        goto RULE_START
+    motdArrayList = 0
+    goto RULE_START
+
+rule "@PlayerJoin":
+    @Event playerJoined
+    playEffect(getAllPlayers(),DynamicEffect.BUFF_EXPLOSION_SOUND,null,getAllPlayers(),80)
+
+rule "@PlayerLEave":
+    @Event playerLeft
+    playEffect(getAllPlayers(),DynamicEffect.DEBUFF_IMPACT_SOUND,null,getAllPlayers(),80)   
+/*
+rule "// SPAWN INTERACTIONS":
+*/
+
+rule "@HUD top Left":
+    @Event eachPlayer
+    hudText(eventPlayer,null,"\n\n\n\n\n\n\n\n",null,HudPosition.LEFT,0,null,null,null,HudReeval.NONE,SpecVisibility.ALWAYS)
+    hudText(eventPlayer,null,"-= STATS =-",null,HudPosition.LEFT,2,null,Color.SKY_BLUE,null,HudReeval.NONE,SpecVisibility.ALWAYS)
+    hudText(eventPlayer,null,null,"{1} Kills: {0}" .format(eventPlayer.totalKillCount, abilityIconString(Hero.MCCREE,Button.PRIMARY_FIRE)),HudPosition.LEFT,3,null,null,Color.YELLOW,HudReeval.STRING,SpecVisibility.DEFAULT)
+    hudText(eventPlayer,null,null,"{1} Deaths: {0}" .format(eventPlayer.deathCount, abilityIconString(Hero.TRACER,Button.ABILITY_2)),HudPosition.LEFT,4,null,null,Color.RED,HudReeval.STRING,SpecVisibility.DEFAULT)
+    hudText(eventPlayer,null,null,"{1} Kill Streak: {0}" .format(eventPlayer.killCount,abilityIconString(Hero.ASHE,Button.ABILITY_2)),HudPosition.LEFT,5,null,null,Color.ORANGE,HudReeval.STRING,SpecVisibility.ALWAYS)
+    hudText(eventPlayer,null,null,"{1} Score: {0}" .format(eventPlayer.getScore(),abilityIconString(Hero.RAMATTRA, Button.ABILITY_2)),HudPosition.LEFT,6,null,null,Color.TURQUOISE,HudReeval.STRING,SpecVisibility.ALWAYS)
+    hudText(eventPlayer,null,"Score 25 to win!\n",null,HudPosition.LEFT,7,null,Color.WHITE,null,HudReeval.NONE,SpecVisibility.ALWAYS)
+    hudText(eventPlayer,null,"Melee Kills:","     {1}   {0}" .format(eventPlayer.meleeKills,abilityIconString(Hero.ILLARI,Button.MELEE)),HudPosition.LEFT,8,null,Color.ROSE,Color.ORANGE,HudReeval.STRING,SpecVisibility.ALWAYS)
+    hudText(eventPlayer,null,"Outburst Kills:","       {1}    {0}" .format(eventPlayer.outburstKills,abilityIconString(Hero.ILLARI,Button.ABILITY_1)),HudPosition.LEFT,8,null,Color.GREEN,Color.ORANGE,HudReeval.STRING,SpecVisibility.ALWAYS)
+    hudText(eventPlayer,null,"Ultimate Kills:","      {1}    {0}" .format(eventPlayer.captiveSunKills,abilityIconString(Hero.ILLARI,Button.ULTIMATE)),HudPosition.LEFT,8,null,Color.YELLOW,Color.ORANGE,HudReeval.STRING,SpecVisibility.ALWAYS)
+
+rule "@HUD top right":
+    @Event eachPlayer
+    hudText(eventPlayer,null,"\n{0} Mode by LUNASMILEYY\n{1} importeddreamz.com/luna\n {2} tiktok/lunapoggers (OW)\n {2} tiktok/lunasmileyy (MUSIC)" .format(abilityIconString(Hero.BAPTISTE,Button.ABILITY_1),abilityIconString(Hero.SOMBRA,Button.SECONDARY_FIRE),abilityIconString(Hero.KIRIKO, Button.PRIMARY_FIRE)),null,HudPosition.RIGHT,0,null,Color.LIME_GREEN,null,HudReeval.NONE,SpecVisibility.ALWAYS)
+    hudText(eventPlayer,null,"{0} discord.gg/HyBcytqHnu\n\n" .format(abilityIconString(Hero.SOMBRA,Button.SECONDARY_FIRE)),null,HudPosition.RIGHT,0,null,Color.LIME_GREEN,null,HudReeval.NONE,SpecVisibility.ALWAYS)
+
+rule "@HUD MIDDLE":
+    @Event eachPlayer
+    hudText(eventPlayer,null,"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",null,HudPosition.TOP,1,null,null,null,HudReeval.NONE,SpecVisibility.ALWAYS)
+    hudText(eventPlayer, "Charges: {0}".format(eventPlayer.jumpCharges), null, null, HudPosition.TOP, 3, Color.LIME_GREEN if eventPlayer.jumpCharges > jumpChargesDefault else Color.YELLOW if eventPlayer.jumpCharges == jumpChargesDefault else Color.ORANGE, Color.GRAY, Color.ORANGE, HudReeval.STRING_AND_COLOR, SpecVisibility.DEFAULT)
+    hudText(eventPlayer, null,"Cooldown: {0}".format(eventPlayer.jumpCD),null, HudPosition.TOP,4,null,Color.GRAY if eventPlayer.jumpCD == 0 else Color.ROSE,null,HudReeval.STRING_AND_COLOR,SpecVisibility.DEFAULT)
+    hudText(eventPlayer,null,"\n\n\n\n\n\n\n\nIllari Paintball V1.0",null,HudPosition.TOP,5,null,Color.GRAY,null,HudReeval.NONE,SpecVisibility.ALWAYS)
+    
+
+rule "RESPAWN":
+    @Event eachPlayer
+    @Condition eventPlayer.hasSpawned() == true
+    @Condition eventPlayer.spawnInit == 1
+    @Condition eventPlayer.respawn == 1
+    
+    eventPlayer.respawn = 0
+    eventPlayer.setMoveSpeed(moveSpeedRespawn)
+    eventPlayer.setDamageDealt(180)
+    eventPlayer.jumpCharges = jumpChargesDefault
+    eventPlayer.jumpCD = 0
+    eventPlayer.lowGrav = 1
+    wait(5)
+    eventPlayer.setMoveSpeed(moveSpeedDefault)
+    smallMessage(eventPlayer, "Respawn speed boost ended!")
+
+
+rule "Death Animation, Sound, and Tracking":
+    @Event playerDied
+    
+    playEffect(getAllPlayers(), DynamicEffect.BAD_PICKUP_EFFECT, Color.ORANGE, eventPlayer.getPosition(), 120)
+    playEffect(getAllPlayers(), DynamicEffect.DEBUFF_IMPACT_SOUND, Color.WHITE, eventPlayer.getPosition(), 100)
+    eventPlayer.respawn = 1
+    eventPlayer.killCount = 0
+    eventPlayer.deathCount = eventPlayer.getNumberOfDeaths()
+    if eventPlayer.killStreakCount > 0:
+        eventPlayer.killStreakCount = 0
+        bigMessage(getAllPlayers(), "{0} ended {1}'s kill streak!".format(attacker, victim))
+
+
+/*
+rule "// JUMP INTERACTIONS":
+*/
+
+rule "@JumpInteraction":
+    @Event eachPlayer
+    @Condition eventPlayer.jumpCharges > 0
+    @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isUsingUltimate() == false
+    
+    wait(0.03)
+    eventPlayer.applyImpulse(eventPlayer.getFacingDirection(), 21, Relativity.TO_WORLD, Impulse.INCORPORATE_CONTRARY_MOTION)
+    playEffect(getAllPlayers(), DynamicEffect.RING_EXPLOSION_SOUND, rgba(255, 238, 153, 144), eventPlayer.getPosition(), 60)
+    eventPlayer.applyImpulse(Vector.UP, 10, Relativity.TO_PLAYER, Impulse.CANCEL_CONTRARY_MOTION)
+    playEffect(getAllPlayers(), DynamicEffect.RING_EXPLOSION, Color.YELLOW, eventPlayer.getPosition(), 6)
+    eventPlayer.jumpCharges -= 1
+    wait(0.75)
+
+
+rule "Jump CD":
+    @Event eachPlayer
+    @Condition eventPlayer.jumpCharges < jumpChargesDefault
+    
+    eventPlayer.jumpCD = jumpCDDefault
+    chase(eventPlayer.jumpCD, 0, rate=1, ChaseReeval.DESTINATION_AND_RATE)
+    wait(jumpCDDefault, Wait.ABORT_WHEN_FALSE)
+    eventPlayer.jumpCharges += 1
+    playEffect(eventPlayer, DynamicEffect.BUFF_IMPACT_SOUND, Color.WHITE, eventPlayer.getPosition(), 20)
+    smallMessage(eventPlayer, "+1 Charge Regained")
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Jump CD Reset":
+    @Event eachPlayer
+    @Condition eventPlayer.jumpCharges >= 2
+    eventPlayer.jumpCD = 0
+
+
+
+
+/*
+rule "Low Grav Toggle":
+    @Event eachPlayer
+    @Condition eventPlayer.isHoldingButton(Button.ABILITY_2) == true
+    @Condition eventPlayer.lowGrav > 0
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isUsingUltimate() == false
+    
+    playEffect(getAllPlayers(), DynamicEffect.DEBUFF_IMPACT_SOUND, Color.WHITE, eventPlayer.getPosition(), 120)
+
+*/
+
+rule "@KillTracking @KillStreak":
+    @Event playerDealtFinalBlow
+    
+    eventPlayer.jumpCharges += 1
+    eventPlayer.totalKillCount += 1
+    eventPlayer.killCount += 1
+    playEffect(eventPlayer, DynamicEffect.RING_EXPLOSION_SOUND, Color.WHITE, eventPlayer.getPosition(), 80)
+    smallMessage(eventPlayer, "+1 Jump Charge!")
+
+    #stat tracking
+    if eventAbility == Button.MELEE:
+        eventPlayer.meleeKills += 1
+        attacker.communicate(Comms.GOODBYE)
+    if eventAbility == Button.ABILITY_1:
+        eventPlayer.outburstKills += 1
+        attacker.communicate(Comms.SORRY)
+    if eventPlayer.isUsingUltimate():
+        eventPlayer.captiveSunKills += 1
+        attacker.communicate(Comms.YOURE_WELCOME)
+
+    #killstreaks
+    if eventPlayer.killCount == 5:
+        eventPlayer.killStreakCount += 1
+        eventPlayer.setMoveSpeed(168)
+        eventPlayer.setStatusEffect(null, Status.BURNING, 10)
+        bigMessage(getAllPlayers(), "{0} is on FIRE!!!".format(eventPlayer))
+        smallMessage(eventPlayer,"{0} +1 BONUS JUMP" .format(abilityIconString(Hero.ILLARI,Button.ABILITY_2)))
+        wait(10, Wait.RESTART_WHEN_TRUE)
+        eventPlayer.setMoveSpeed(moveSpeedDefault)
+        eventPlayer.jumpCharges += 1
+        eventPlayer.clearStatusEffect(Status.BURNING)
+    if eventPlayer.killCount == 8:
+        eventPlayer.killStreakCount += 1
+        eventPlayer.setMoveSpeed(180)
+        eventPlayer.jumpCharges += 3
+        eventPlayer.setUltCharge(100)
+        eventPlayer.setStatusEffect(null, Status.BURNING, 10)
+        bigMessage(getAllPlayers(), "{0} is on a TEAR!!!".format(eventPlayer))
+        smallMessage(eventPlayer,"{0} +3 JUMPS" .format(abilityIconString(Hero.ILLARI,Button.ABILITY_2)))
+        wait(10, Wait.RESTART_WHEN_TRUE)
+        eventPlayer.setMoveSpeed(moveSpeedDefault)
+        eventPlayer.clearStatusEffect(Status.BURNING)
+    if eventPlayer.killCount == 12:
+        eventPlayer.killStreakCount += 1
+        eventPlayer.setMoveSpeed(200)
+        eventPlayer.jumpCharges += 6
+        eventPlayer.setUltCharge(100)
+        eventPlayer.setStatusEffect(null, Status.BURNING, 10)
+        bigMessage(getAllPlayers(), "{0} is BLAZING!!!".format(eventPlayer))
+        smallMessage(eventPlayer,"{0} +6 JUMPS" .format(abilityIconString(Hero.ILLARI,Button.ABILITY_2)))
+        wait(12, Wait.RESTART_WHEN_TRUE)
+        eventPlayer.setMoveSpeed(moveSpeedDefault)
+        eventPlayer.clearStatusEffect(Status.BURNING)
+    if eventPlayer.killCount == 18:
+        eventPlayer.killStreakCount += 1
+        eventPlayer.setMoveSpeed(200)
+        eventPlayer.jumpCharges += 10
+        eventPlayer.setUltCharge(100)
+        eventPlayer.setStatusEffect(null, Status.BURNING, 10)
+        bigMessage(getAllPlayers(), "{0} is UNSTOPPABLE!!!".format(eventPlayer))
+        smallMessage(eventPlayer,"{0} +10 JUMPS" .format(abilityIconString(Hero.ILLARI,Button.ABILITY_2)))
+        wait(12, Wait.RESTART_WHEN_TRUE)
+        eventPlayer.setMoveSpeed(moveSpeedDefault)
+        eventPlayer.clearStatusEffect(Status.BURNING)    
+
+
+
+rule "@Inactive Lock Interaction":
+    @Event playerJoined
+    @Condition eventPlayer.spawnInit != 1
+    eventPlayer.setInvisibility(Invis.ALL)
+    eventPlayer.setMoveSpeed(0)
+    eventPlayer.setDamageReceived(0)
+    eventPlayer.setStatusEffect(null, Status.HACKED, 9999)
+    eventPlayer.setJumpEnabled(false)
+    eventPlayer.setPrimaryFireEnabled(false)
+    eventPlayer.setKnockbackReceived(0)
+    eventPlayer.disableGamemodeHud()
+    eventPlayer.jumpCharges = jumpChargesDefault + 1
+    waitUntil(eventPlayer.isHoldingButton(Button.INTERACT), 99999)
+    eventPlayer.setInvisibility(Invis.NONE)
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_PICKUP_EFFECT, Color.LIME_GREEN, eventPlayer.getPosition(), 100)
+    bigMessage(getAllPlayers(),"{0} has joined the fight!" .format(eventPlayer))
+    eventPlayer.spawnInit = 1
+    eventPlayer.respawn = 1
+    eventPlayer.setMoveSpeed(moveSpeedDefault)
+    eventPlayer.setDamageReceived(100)
+    eventPlayer.clearStatusEffect(Status.HACKED)
+    eventPlayer.setJumpEnabled(true)
+    eventPlayer.setPrimaryFireEnabled(true)
+    eventPlayer.setKnockbackReceived(100)
+    wait(0.2)
+    eventPlayer.jumpCharges = jumpChargesDefault
+
+
+rule "Inactive lock txt":
+    @Event eachPlayer
+    @Condition eventPlayer.spawnInit != 1
+    
+    bigMessage(eventPlayer, "Press {0} to Leap!" .format(buttonString(Button.INTERACT)))
+    wait(3.5, Wait.ABORT_WHEN_FALSE)
+    if RULE_CONDITION:
+        goto RULE_START
+
+
+rule "Ultimate Speed":
+    @Event eachPlayer
+    @Condition eventPlayer.isUsingUltimate() == true
+    
+    eventPlayer.setMoveSpeed(moveSpeedUlt)
+    waitUntil(false, 10)
+    eventPlayer.setMoveSpeed(moveSpeedDefault)
+
+
+/*
+rule "AFK Protection (TO BE WORKED ON)":
+    @Event eachPlayer
+    
+*/
+
+/*
+rule "Crouch to Fall (TO BE WORKED ON)":
+    @Event eachPlayer
+    @Condition eventPlayer.isAlive() == true
+    
+    if eventPlayer.isHoldingButton(Button.CROUCH):
+        eventPlayer.setGravity(300)
+    else:
+        eventPlayer.setGravity(100)
+*/
