@@ -211,11 +211,10 @@ rule "@HUD top right":
 
 rule "@HUD MIDDLE":
     @Event eachPlayer
-    hudText(eventPlayer,null,"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",null,HudPosition.TOP,1,null,null,null,HudReeval.NONE,SpecVisibility.ALWAYS)
-    hudText(eventPlayer, "Charges: {0}".format(eventPlayer.jumpCharges), null, null, HudPosition.TOP, 3, Color.LIME_GREEN if eventPlayer.jumpCharges > jumpChargesDefault else Color.YELLOW if eventPlayer.jumpCharges == jumpChargesDefault else Color.ORANGE, Color.GRAY, Color.ORANGE, HudReeval.STRING_AND_COLOR, SpecVisibility.DEFAULT)
-    hudText(eventPlayer, null,"Cooldown: {0}".format(eventPlayer.jumpCD),null, HudPosition.TOP,4,null,Color.GRAY if eventPlayer.jumpCD == 0 else Color.ROSE,null,HudReeval.STRING_AND_COLOR,SpecVisibility.DEFAULT)
-    hudText(eventPlayer,null,"\n\n\n\n\n\n\n\nIllari Paintball V1.0",null,HudPosition.TOP,5,null,Color.GRAY,null,HudReeval.NONE,SpecVisibility.ALWAYS)
     
+    createInWorldText(eventPlayer, "      ■■ +{0}".format(eventPlayer.jumpCharges - 2) if eventPlayer.jumpCharges > 2 else ["□□", "■□", "■■"][eventPlayer.jumpCharges], updateEveryTick(localPlayer.getEyePosition() + (100 * (0 * worldVector(Vector.RIGHT, localPlayer, Transform.ROTATION) + ((-0.18 - 0.2) * (angleToDirection(horizontalAngleOfDirection(localPlayer.getFacingDirection()), verticalAngleOfDirection(localPlayer.getFacingDirection()) - 90))) + 3 * localPlayer.getFacingDirection()))), 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_STRING_AND_COLOR, Color.LIME_GREEN, SpecVisibility.NEVER)
+    createProgressBarInWorldText(null if eventPlayer.jumpCharges >= 2 else eventPlayer, (7 - eventPlayer.jumpCD) * (100 / 7), "Cooldown", updateEveryTick(localPlayer.getEyePosition() + (100 * (0 * worldVector(Vector.RIGHT, localPlayer, Transform.ROTATION) + ((-0.45 - 0.2) * (angleToDirection(horizontalAngleOfDirection(localPlayer.getFacingDirection()), verticalAngleOfDirection(localPlayer.getFacingDirection()) - 90))) + 3 * localPlayer.getFacingDirection()))), 0.5, Clip.NONE, Color.LIME_GREEN, Color.WHITE, ProgressWorldTextReeval.VISIBILITY_POSITION_VALUES_AND_COLOR, SpecVisibility.DEFAULT)
+  
 
 rule "RESPAWN":
     @Event eachPlayer
