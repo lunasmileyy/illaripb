@@ -304,6 +304,7 @@ rule "@KillTracking @KillStreak":
     @Event playerDealtFinalBlow
     
     eventPlayer.jumpCharges += 1
+    eventPlayer.setHealth(eventPlayer.getMaxHealth())
     eventPlayer.totalKillCount += 1
     eventPlayer.killCount += 1
     playEffect(eventPlayer, DynamicEffect.RING_EXPLOSION_SOUND, Color.WHITE, eventPlayer.getPosition(), 80)
